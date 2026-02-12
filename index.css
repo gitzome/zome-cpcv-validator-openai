@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-zome-dark: #022439;
+  --color-zome-red: #FF004F;
+  --color-zome-gray: #F3F4F6;
+  --font-sans: system-ui, sans-serif;
+}
+
+body {
+  background-color: #F8F9FA;
+}
