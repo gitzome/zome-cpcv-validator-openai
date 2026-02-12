@@ -29,4 +29,5 @@ export interface ValidationReport {
     property: { status: 'MATCH' | 'MISMATCH' | 'MISSING'; notes: string };
   };
   discrepancies: Discrepancy[];
+  missingDocumentsData: string[];
 }

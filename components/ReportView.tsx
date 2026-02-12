@@ -27,20 +27,20 @@ const StatusIcon = ({ status }: { status: string }) => {
 };
 
 export const ReportView: React.FC<ReportViewProps> = ({ report, onReset }) => {
-  
+
   const isOverallValid = report.overallStatus === 'VALID';
-  
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
-      
+
       {/* Header */}
       <div className={`p-8 rounded-2xl text-white shadow-xl ${isOverallValid ? 'bg-green-600' : 'bg-zome-dark'}`}>
         <div className="flex items-center gap-4 mb-4">
           <div className="p-3 bg-white/20 rounded-full">
-             {isOverallValid 
-               ? <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-               : <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-             }
+            {isOverallValid
+              ? <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              : <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            }
           </div>
           <div>
             <h2 className="text-2xl font-bold">Relatório de Validação</h2>
@@ -69,12 +69,29 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onReset }) => {
         ))}
       </div>
 
+      {/* Missing Documents / Unverified Data */}
+      {report.missingDocumentsData && report.missingDocumentsData.length > 0 && (
+        <div className="bg-orange-50 rounded-xl shadow-sm border border-orange-200 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <h3 className="font-bold text-orange-800 text-lg">Dados Não Verificados (Falta de Documentos)</h3>
+          </div>
+          <ul className="list-disc list-inside space-y-2 text-orange-900">
+            {report.missingDocumentsData.map((item, idx) => (
+              <li key={idx} className="bg-white/50 p-2 rounded">{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Discrepancies List */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
           <h3 className="font-bold text-zome-dark text-lg">Detalhes da Análise</h3>
         </div>
-        
+
         {report.discrepancies.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             Nenhuma discrepância encontrada.
@@ -84,10 +101,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onReset }) => {
             {report.discrepancies.map((disc, idx) => (
               <div key={idx} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between mb-2">
-                   <div className="flex items-center gap-3">
-                     <SeverityBadge severity={disc.severity} />
-                     <span className="font-bold text-zome-dark">{disc.field}</span>
-                   </div>
+                  <div className="flex items-center gap-3">
+                    <SeverityBadge severity={disc.severity} />
+                    <span className="font-bold text-zome-dark">{disc.field}</span>
+                  </div>
                 </div>
                 <p className="text-gray-700 mb-3">{disc.description}</p>
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg text-sm">

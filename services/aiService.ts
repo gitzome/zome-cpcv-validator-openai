@@ -125,7 +125,8 @@ export const validateDocuments = async (files: UploadedFile[]): Promise<Validati
                    - Are all Owners listed in the CPCV correct (Names, NIFs, Marital Status)?
                    - Are all Buyers listed in the CPCV correct?
                    - Does the Property description match the Property Documents?
-                   - Check for typos in NIFs.
+                    - Check for typos in NIFs.
+                   5. Identify any data found in the CPCV (e.g., IBAN, specific IDs, Marriage Certificates) that CANNOT be verified because the corresponding source document is missing.
                 4. Output the result strictly in JSON with this structure:
                 {
                   "overallStatus": "VALID" | "INVALID" | "REVIEW_NEEDED",
@@ -137,7 +138,8 @@ export const validateDocuments = async (files: UploadedFile[]): Promise<Validati
                   },
                   "discrepancies": [
                     { "severity": "CRITICAL" | "WARNING" | "INFO", "field": "string", "sourceDocValue": "string", "cpcvValue": "string", "description": "string in Portuguese" }
-                  ]
+                  ],
+                  "missingDocumentsData": ["string (e.g., 'IBAN no CPCV sem comprovativo', 'Certidão de Casamento em falta')"]
                 }
             ` }
           ]
