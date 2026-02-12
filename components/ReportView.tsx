@@ -69,6 +69,57 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onReset }) => {
         ))}
       </div>
 
+      {/* Detailed Comparison Table */}
+      {report.detailedComparison && (
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="font-bold text-zome-dark text-lg">Comparação Detalhada</h3>
+          </div>
+          <div className="p-6 space-y-8">
+            {[
+              { title: 'Proprietários', data: report.detailedComparison.owners },
+              { title: 'Compradores', data: report.detailedComparison.buyers },
+              { title: 'Imóvel', data: report.detailedComparison.property },
+            ].map((section, idx) => (
+              <div key={idx}>
+                <h4 className="font-bold text-zome-dark mb-4 border-b pb-2">{section.title}</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2">Campo</th>
+                        <th className="px-4 py-2">Documento Original</th>
+                        <th className="px-4 py-2">CPCV</th>
+                        <th className="px-4 py-2 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {section.data && section.data.map((item, itemIdx) => (
+                        <tr key={itemIdx} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium text-gray-900">{item.field}</td>
+                          <td className="px-4 py-3 text-gray-600 font-mono text-xs">{item.sourceValue || '-'}</td>
+                          <td className="px-4 py-3 text-gray-600 font-mono text-xs">{item.cpcvValue || '-'}</td>
+                          <td className="px-4 py-3 text-center">
+                            {item.status === 'MATCH' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Correto</span>}
+                            {item.status === 'MISMATCH' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Discrepância</span>}
+                            {(item.status === 'MISSING_SOURCE' || item.status === 'MISSING_CPCV') && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Em Falta</span>}
+                          </td>
+                        </tr>
+                      ))}
+                      {(!section.data || section.data.length === 0) && (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-3 text-center text-gray-500 italic">Sem dados para comparar</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Missing Documents / Unverified Data */}
       {report.missingDocumentsData && report.missingDocumentsData.length > 0 && (
         <div className="bg-orange-50 rounded-xl shadow-sm border border-orange-200 p-6">

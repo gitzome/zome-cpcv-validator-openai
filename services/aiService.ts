@@ -124,13 +124,15 @@ export const validateDocuments = async (files: UploadedFile[]): Promise<Validati
                 3. Cross-reference the data. Verify:
                    - Are all Owners listed in the CPCV correct (Names, NIFs, Marital Status)?
                    - Are all Buyers listed in the CPCV correct?
-                   - Does the Property description match the Property Documents?
+                    - Does the Property description match the Property Documents?
                     - Check for typos in NIFs.
-                   5. Identify any data found in the CPCV (e.g., IBAN, specific IDs, Marriage Certificates) that CANNOT be verified because the corresponding source document is missing.
+                    ***CRITICAL: When comparing identification numbers (NIF, CC, NIC, IBAN), IGNORE ALL SPACES. Treat "123 456 789" as EQUAL to "123456789".***
+                   5. CRITICAL: Identify any data found in the CPCV (ESPECIALLY IBANs, specific IDs, Marriage Certificates) that CANNOT be verified because the corresponding source document is missing. List these clearly in 'missingDocumentsData'.
                 4. Output the result strictly in JSON with this structure:
                 {
                   "overallStatus": "VALID" | "INVALID" | "REVIEW_NEEDED",
                   "summary": "string in Portuguese",
+                  "missingDocumentsData": ["string (e.g., 'IBAN PT50... no CPCV sem comprovativo', 'Certidão de Casamento em falta', 'Cartão de Cidadão caducado')"],
                   "entities": {
                     "owners": { "status": "MATCH" | "MISMATCH" | "MISSING", "notes": "string" },
                     "buyers": { "status": "MATCH" | "MISMATCH" | "MISSING", "notes": "string" },
@@ -139,9 +141,25 @@ export const validateDocuments = async (files: UploadedFile[]): Promise<Validati
                   "discrepancies": [
                     { "severity": "CRITICAL" | "WARNING" | "INFO", "field": "string", "sourceDocValue": "string", "cpcvValue": "string", "description": "string in Portuguese" }
                   ],
-                  "missingDocumentsData": ["string (e.g., 'IBAN no CPCV sem comprovativo', 'Certidão de Casamento em falta')"]
+                  "detailedComparison": {
+                    "owners": [
+                      // LIST ALL FIELDS FOUND (Name, NIF, CC, Marital Status, Address, etc.), even if they MATCH.
+                      { "field": "Nome (Ex: João Silva)", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" },
+                      { "field": "NIF (Ex: 123456789)", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" }
+                    ],
+                    "buyers": [
+                       // LIST ALL FIELDS FOUND (Name, NIF, CC, Marital Status, Address, etc.), even if they MATCH.
+                       { "field": "Nome", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" },
+                       { "field": "NIF", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" }
+                    ],
+                    "property": [
+                      // LIST ALL FIELDS FOUND (Matrix Art., Fraction, Address, Description, Areas, etc.), even if they MATCH.
+                      { "field": "Artigo Matricial", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" },
+                      { "field": "Fração", "sourceValue": "string", "cpcvValue": "string", "status": "MATCH" | "MISMATCH" | "MISSING_SOURCE" | "MISSING_CPCV" }
+                    ]
+                  }
                 }
-            ` }
+             ` }
           ]
         }
       ],
@@ -152,10 +170,51 @@ export const validateDocuments = async (files: UploadedFile[]): Promise<Validati
     const content = response.choices[0].message.content;
     if (!content) throw new Error("No response from AI");
 
-    return JSON.parse(content) as ValidationReport;
+    const report = JSON.parse(content) as ValidationReport;
+    return postProcessReport(report);
 
   } catch (error) {
     console.error("Error validating documents:", error);
     throw error;
   }
+};
+
+const normalizeString = (str: string): string => {
+  if (!str) return '';
+  // Remove all spaces and convert to lowercase for comparison
+  return str.replace(/\s+/g, '').toLowerCase();
+};
+
+
+const postProcessReport = (report: ValidationReport): ValidationReport => {
+  if (!report.detailedComparison) return report;
+
+  const processItems = (items: any[]) => {
+    return items.map(item => {
+      if (item.status === 'MISMATCH' && item.sourceValue && item.cpcvValue) {
+        if (normalizeString(item.sourceValue) === normalizeString(item.cpcvValue)) {
+          console.log(`[Auto-Correction] Fixed false mismatch for field '${item.field}': ${item.sourceValue} vs ${item.cpcvValue}`);
+          return { ...item, status: 'MATCH' };
+        }
+      }
+      return item;
+    });
+  };
+
+  report.detailedComparison.owners = processItems(report.detailedComparison.owners || []);
+  report.detailedComparison.buyers = processItems(report.detailedComparison.buyers || []);
+  report.detailedComparison.property = processItems(report.detailedComparison.property || []);
+
+  // Filter out false discrepancies from the main list
+  if (report.discrepancies) {
+    report.discrepancies = report.discrepancies.filter(d => {
+      const isFalsePositive = normalizeString(d.sourceDocValue) === normalizeString(d.cpcvValue);
+      if (isFalsePositive) {
+         console.log(`[Auto-Correction] Removed false discrepancy: ${d.field} (${d.sourceDocValue} vs ${d.cpcvValue})`);
+      }
+      return !isFalsePositive;
+    });
+  }
+
+  return report;
 };

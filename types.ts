@@ -30,4 +30,16 @@ export interface ValidationReport {
   };
   discrepancies: Discrepancy[];
   missingDocumentsData: string[];
+  detailedComparison: {
+    owners: ComparisonItem[];
+    buyers: ComparisonItem[];
+    property: ComparisonItem[];
+  };
+}
+
+export interface ComparisonItem {
+  field: string;
+  sourceValue: string;
+  cpcvValue: string;
+  status: 'MATCH' | 'MISMATCH' | 'MISSING_SOURCE' | 'MISSING_CPCV';
 }
