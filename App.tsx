@@ -20,9 +20,9 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const steps = [
-    { type: UploadType.OWNER, title: "Documentos do Proprietário", description: "Cartão de Cidadão, Passaporte ou Certidão Permanente.", icon: <UserIcon /> },
-    { type: UploadType.BUYER, title: "Documentos do Comprador", description: "Cartão de Cidadão ou Passaporte.", icon: <BuyerIcon /> },
-    { type: UploadType.PROPERTY, title: "Documentos do Imóvel", description: "Caderneta Predial e Certidão do Registo Predial.", icon: <HomeIcon /> },
+    { type: UploadType.OWNER, title: "Documentos do Proprietário", description: "Cartão de Cidadão, Passaporte ou Título de residência.", icon: <UserIcon /> },
+    { type: UploadType.BUYER, title: "Documentos do Comprador", description: "Cartão de Cidadão, Passaporte ou Título de residência.", icon: <BuyerIcon /> },
+    { type: UploadType.PROPERTY, title: "Documentos do Imóvel", description: "Caderneta Predial, Certidão do Registo Predial e Certificado Energético.", icon: <HomeIcon /> },
     { type: UploadType.CPCV, title: "CPCV", description: "Contrato Promessa de Compra e Venda (rascunho ou assinado).", icon: <DocIcon /> },
   ];
 
